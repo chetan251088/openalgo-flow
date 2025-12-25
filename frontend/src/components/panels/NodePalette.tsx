@@ -240,105 +240,118 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
   ]
 
   const data = [
+    // Market Data - Cyan/Blue
     {
       type: 'getQuote',
       label: 'Get Quote',
       description: 'Real-time quote',
-      icon: <BarChart3 className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <BarChart3 className="h-3.5 w-3.5 text-cyan-500" />,
+      color: 'bg-cyan-500/10',
     },
     {
       type: 'getDepth',
       label: 'Get Depth',
       description: 'Bid/ask depth',
-      icon: <Layers3 className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Layers3 className="h-3.5 w-3.5 text-cyan-500" />,
+      color: 'bg-cyan-500/10',
     },
+    // Order/Trade Data - Orange
     {
       type: 'getOrderStatus',
       label: 'Order Status',
       description: 'Check order',
-      icon: <FileSearch className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <FileSearch className="h-3.5 w-3.5 text-orange-500" />,
+      color: 'bg-orange-500/10',
     },
+    // Market Data - Cyan
     {
       type: 'history',
       label: 'History',
       description: 'OHLCV data',
-      icon: <TrendingUp className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <TrendingUp className="h-3.5 w-3.5 text-cyan-500" />,
+      color: 'bg-cyan-500/10',
     },
+    // Position Data - Violet
     {
       type: 'openPosition',
       label: 'Open Position',
       description: 'Get position',
-      icon: <Briefcase className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Briefcase className="h-3.5 w-3.5 text-violet-500" />,
+      color: 'bg-violet-500/10',
     },
+    // Options Data - Pink
     {
       type: 'expiry',
       label: 'Expiry Dates',
       description: 'F&O expiry',
-      icon: <Calendar className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Calendar className="h-3.5 w-3.5 text-pink-500" />,
+      color: 'bg-pink-500/10',
     },
+    // Market Data - Cyan
     {
       type: 'multiQuotes',
       label: 'Multi Quotes',
       description: 'Multiple symbols',
-      icon: <BarChart3 className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <BarChart3 className="h-3.5 w-3.5 text-cyan-500" />,
+      color: 'bg-cyan-500/10',
     },
+    // Symbol Info - Teal
     {
       type: 'symbol',
       label: 'Symbol Info',
       description: 'Get symbol details',
-      icon: <Tag className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Tag className="h-3.5 w-3.5 text-teal-500" />,
+      color: 'bg-teal-500/10',
     },
+    // Options Data - Pink
     {
       type: 'optionSymbol',
       label: 'Option Symbol',
       description: 'Resolve options',
-      icon: <Target className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Target className="h-3.5 w-3.5 text-pink-500" />,
+      color: 'bg-pink-500/10',
     },
+    // Order/Trade Data - Orange
     {
       type: 'orderBook',
       label: 'Order Book',
       description: 'All orders',
-      icon: <ClipboardList className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <ClipboardList className="h-3.5 w-3.5 text-orange-500" />,
+      color: 'bg-orange-500/10',
     },
+    // Order/Trade Data - Orange
     {
       type: 'tradeBook',
       label: 'Trade Book',
       description: 'Executed trades',
-      icon: <Receipt className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Receipt className="h-3.5 w-3.5 text-orange-500" />,
+      color: 'bg-orange-500/10',
     },
+    // Position Data - Violet
     {
       type: 'positionBook',
       label: 'Position Book',
       description: 'All positions',
-      icon: <Briefcase className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Briefcase className="h-3.5 w-3.5 text-violet-500" />,
+      color: 'bg-violet-500/10',
     },
+    // Options Data - Pink
     {
       type: 'syntheticFuture',
       label: 'Synthetic Future',
       description: 'Calc future price',
-      icon: <Calculator className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Calculator className="h-3.5 w-3.5 text-pink-500" />,
+      color: 'bg-pink-500/10',
     },
+    // Options Data - Pink
     {
       type: 'optionChain',
       label: 'Option Chain',
       description: 'Full chain data',
-      icon: <Grid3X3 className="h-3.5 w-3.5 text-primary" />,
-      color: 'bg-primary/10',
+      icon: <Grid3X3 className="h-3.5 w-3.5 text-pink-500" />,
+      color: 'bg-pink-500/10',
     },
-    // Risk Management
+    // Risk Management - Amber
     {
       type: 'holdings',
       label: 'Holdings',

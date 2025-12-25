@@ -14,7 +14,7 @@ interface NotGateNodeProps {
   selected?: boolean
 }
 
-export const NotGateNode = memo(({ data, selected }: NotGateNodeProps) => {
+export const NotGateNode = memo(({ selected }: NotGateNodeProps) => {
   return (
     <div
       className={cn(

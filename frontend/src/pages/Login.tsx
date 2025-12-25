@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Loader2, Lock, Shield, Eye, EyeOff, Workflow, Zap, LineChart, Bot, User } from 'lucide-react'
+import { Loader2, Lock, Shield, Eye, EyeOff, Workflow, Zap, LineChart, Bot } from 'lucide-react'
 import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/button'

@@ -3,7 +3,7 @@
  * Displays user profile info and allows password change
  */
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Loader2, User, Calendar, Lock, Check } from 'lucide-react'
 import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
@@ -16,7 +16,6 @@ import { useToast } from '@/hooks/use-toast'
 
 export function Profile() {
   const { toast } = useToast()
-  const queryClient = useQueryClient()
   const { username: storedUsername } = useAuthStore()
 
   // Password change form state
