@@ -1492,6 +1492,16 @@ async def activate_workflow(workflow_id: int, db: AsyncSession) -> dict:
     days = start_data.get("days", [])
     execute_at = start_data.get("executeAt")
 
+    # Get interval settings (new format)
+    interval_value = start_data.get("intervalValue")
+    interval_unit = start_data.get("intervalUnit")
+
+    # Backward compatibility: convert old intervalMinutes to new format
+    if schedule_type == "interval" and not interval_value:
+        interval_minutes = start_data.get("intervalMinutes", 1)
+        interval_value = interval_minutes
+        interval_unit = "minutes"
+
     try:
         job_id = workflow_scheduler.add_workflow_job(
             workflow_id=workflow_id,
@@ -1499,6 +1509,8 @@ async def activate_workflow(workflow_id: int, db: AsyncSession) -> dict:
             time_str=time_str,
             days=days,
             execute_at=execute_at,
+            interval_value=interval_value,
+            interval_unit=interval_unit,
             func=execute_workflow_sync,
         )
 

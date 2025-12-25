@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
-import { Clock, Calendar, CalendarDays } from 'lucide-react'
+import { Clock, Calendar, CalendarDays, Timer } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { StartNodeData } from '@/types'
 
@@ -13,16 +13,26 @@ const scheduleIcons: Record<string, typeof Clock> = {
   once: Calendar,
   daily: Clock,
   weekly: CalendarDays,
+  interval: Timer,
 }
 
 const scheduleLabels: Record<string, string> = {
   once: 'One-time',
   daily: 'Daily',
   weekly: 'Weekly',
+  interval: 'Interval',
 }
 
 export const StartNode = memo(({ data, selected }: StartNodeProps) => {
   const Icon = scheduleIcons[data.scheduleType] || Clock
+
+  // Format interval display
+  const getIntervalDisplay = () => {
+    const value = data.intervalValue || 1
+    const unit = data.intervalUnit || 'minutes'
+    const unitShort = unit === 'seconds' ? 's' : unit === 'hours' ? 'h' : 'm'
+    return `${value}${unitShort}`
+  }
 
   return (
     <div
@@ -44,10 +54,18 @@ export const StartNode = memo(({ data, selected }: StartNodeProps) => {
           </div>
         </div>
         <div className="rounded bg-muted/50 px-1.5 py-1 text-[10px]">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-muted-foreground">Time:</span>
-            <span className="mono-data font-medium">{data.time || '09:15'}</span>
-          </div>
+          {/* Show interval for interval schedule, time for others */}
+          {data.scheduleType === 'interval' ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Every:</span>
+              <span className="mono-data font-medium">{getIntervalDisplay()}</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Time:</span>
+              <span className="mono-data font-medium">{data.time || '09:15'}</span>
+            </div>
+          )}
           {data.scheduleType === 'weekly' && data.days && data.days.length > 0 && (
             <div className="mt-0.5 flex items-center justify-between">
               <span className="text-muted-foreground">Days:</span>

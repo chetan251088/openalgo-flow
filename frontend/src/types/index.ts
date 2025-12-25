@@ -11,7 +11,9 @@ export interface StartNodeData {
   time: string
   days?: number[]
   executeAt?: string
-  intervalMinutes?: number
+  intervalMinutes?: number  // Legacy - kept for backward compatibility
+  intervalValue?: number    // New - interval value (e.g., 1, 5, 10)
+  intervalUnit?: 'seconds' | 'minutes' | 'hours'  // New - interval unit
   marketHoursOnly?: boolean
 }
 

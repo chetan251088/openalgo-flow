@@ -426,14 +426,50 @@ export function ConfigPanel() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Time</Label>
-                <Input
-                  type="time"
-                  value={(nodeData.time as string) || '09:15'}
-                  onChange={(e) => handleDataChange('time', e.target.value)}
-                />
-              </div>
+              {/* Time field - shown for daily, weekly, once (not interval) */}
+              {nodeData.scheduleType !== 'interval' && (
+                <div className="space-y-2">
+                  <Label>Time</Label>
+                  <Input
+                    type="time"
+                    value={(nodeData.time as string) || '09:15'}
+                    onChange={(e) => handleDataChange('time', e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Interval configuration */}
+              {nodeData.scheduleType === 'interval' && (
+                <div className="space-y-2">
+                  <Label>Repeat Every</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="1440"
+                      value={(nodeData.intervalValue as number) || 1}
+                      onChange={(e) => handleDataChange('intervalValue', parseInt(e.target.value) || 1)}
+                      className="w-20"
+                    />
+                    <Select
+                      value={(nodeData.intervalUnit as string) || 'minutes'}
+                      onValueChange={(v) => handleDataChange('intervalUnit', v)}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="seconds">Seconds</SelectItem>
+                        <SelectItem value="minutes">Minutes</SelectItem>
+                        <SelectItem value="hours">Hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Workflow will run every {(nodeData.intervalValue as number) || 1} {(nodeData.intervalUnit as string) || 'minutes'}
+                  </p>
+                </div>
+              )}
 
               {nodeData.scheduleType === 'weekly' && (
                 <div className="space-y-2">
