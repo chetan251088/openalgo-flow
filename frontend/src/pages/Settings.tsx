@@ -105,16 +105,15 @@ export function Settings() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
-      <div className="mx-auto max-w-2xl px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">
-            Configure your OpenAlgo connection settings
-          </p>
-        </div>
+    <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">
+          Configure your OpenAlgo connection settings
+        </p>
+      </div>
 
-      <div className="space-y-6">
+      <div className="max-w-2xl space-y-6">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -212,7 +211,7 @@ export function Settings() {
               <div>
                 <CardTitle>Analyzer Mode</CardTitle>
                 <CardDescription>
-                  Paper trading mode - orders are simulated
+                  Sandbox trading mode - orders are simulated
                 </CardDescription>
               </div>
             </div>
@@ -233,7 +232,7 @@ export function Settings() {
             </div>
             {analyzerMode && (
               <div className="mt-3 rounded-lg bg-amber-500/10 p-3 text-sm text-amber-500">
-                Analyzer Mode is active. All orders will be paper trades.
+                Analyzer Mode is active. All orders will be sandbox trades.
               </div>
             )}
           </CardContent>
@@ -280,7 +279,6 @@ export function Settings() {
             Save Settings
           </Button>
         </div>
-      </div>
       </div>
     </div>
   )

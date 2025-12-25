@@ -102,14 +102,15 @@ export function Profile() {
   }
 
   return (
-    <div className="container max-w-2xl py-8 space-y-6">
-      <div>
+    <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mb-8">
         <h1 className="text-2xl font-bold">Profile</h1>
         <p className="text-muted-foreground">
           Manage your account settings
         </p>
       </div>
 
+      <div className="max-w-2xl space-y-6">
       {/* Profile Info Card */}
       <Card>
         <CardHeader>
@@ -241,6 +242,7 @@ export function Profile() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

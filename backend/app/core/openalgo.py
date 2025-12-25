@@ -315,12 +315,15 @@ class OpenAlgoClient:
         """Send Telegram notification using SDK"""
         return self.client.telegram(username=username, message=message)
 
-    def test_connection(self) -> dict:
-        """Test connection by fetching funds"""
+    async def test_connection(self) -> dict:
+        """Test connection using analyzer status (lightweight ping)"""
         try:
-            result = self.get_funds()
+            # Use analyzerstatus() as a lightweight ping
+            # This doesn't require broker connection, just checks OpenAlgo is running
+            result = self.client.analyzerstatus()
             return result
         except Exception as e:
+            logger.error(f"Connection test failed: {e}")
             return {"status": "error", "message": str(e)}
 
     def get_holidays(self, year: int) -> dict:

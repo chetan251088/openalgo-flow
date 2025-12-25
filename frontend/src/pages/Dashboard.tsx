@@ -222,7 +222,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="container py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Workflows</h1>
