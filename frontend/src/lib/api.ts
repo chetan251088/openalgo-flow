@@ -147,6 +147,7 @@ export const workflowsApi = {
     status: string;
     message: string;
     execution_id?: number;
+    logs?: { time: string; message: string; level: string }[];
   }>(`${API_ENDPOINTS.WORKFLOWS}/${id}/execute`, {
     method: 'POST',
   }),

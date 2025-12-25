@@ -1011,6 +1011,7 @@ async def execute_workflow(workflow_id: int) -> dict:
                 "status": "success",
                 "message": "Workflow executed successfully",
                 "execution_id": execution.id,
+                "logs": logs,
             }
 
         except Exception as e:
@@ -1029,7 +1030,7 @@ async def execute_workflow(workflow_id: int) -> dict:
             execution.logs = logs
             await db.commit()
 
-            return {"status": "error", "message": str(e), "execution_id": execution.id}
+            return {"status": "error", "message": str(e), "execution_id": execution.id, "logs": logs}
 
 
 async def execute_node_chain(

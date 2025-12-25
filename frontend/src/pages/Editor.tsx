@@ -19,6 +19,7 @@ import {
   Pause,
   Loader2,
   MoreVertical,
+  Terminal,
 } from 'lucide-react'
 import { workflowsApi } from '@/lib/api'
 import { DEFAULT_NODE_DATA } from '@/lib/constants'
@@ -36,6 +37,7 @@ import { nodeTypes } from '@/components/nodes'
 import { edgeTypes } from '@/components/edges'
 import { NodePalette } from '@/components/panels/NodePalette'
 import { ConfigPanel } from '@/components/panels/ConfigPanel'
+import { ExecutionLogPanel, type LogEntry } from '@/components/panels/ExecutionLogPanel'
 import { cn } from '@/lib/utils'
 
 let nodeId = 0
@@ -67,6 +69,9 @@ export function Editor() {
   } = useWorkflowStore()
 
   const [isActive, setIsActive] = useState(false)
+  const [showLogPanel, setShowLogPanel] = useState(false)
+  const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([])
+  const [executionStatus, setExecutionStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle')
 
   const { isLoading, data: workflow } = useQuery({
     queryKey: ['workflow', id],
@@ -150,15 +155,26 @@ export function Editor() {
   })
 
   const executeMutation = useMutation({
-    mutationFn: () => workflowsApi.execute(Number(id)),
+    mutationFn: () => {
+      setExecutionStatus('running')
+      setExecutionLogs([])
+      setShowLogPanel(true)
+      return workflowsApi.execute(Number(id))
+    },
     onSuccess: (data) => {
+      setExecutionStatus(data.status === 'success' ? 'success' : 'error')
+      if (data.logs) {
+        setExecutionLogs(data.logs as LogEntry[])
+      }
       toast({
-        title: data.status === 'success' ? 'Execution started' : 'Execution failed',
+        title: data.status === 'success' ? 'Execution completed' : 'Execution failed',
         description: data.message,
         variant: data.status === 'success' ? 'success' : 'destructive',
       })
     },
     onError: (error: Error) => {
+      setExecutionStatus('error')
+      setExecutionLogs([{ time: new Date().toISOString(), message: error.message, level: 'error' }])
       toast({ title: 'Error', description: error.message, variant: 'destructive' })
     },
   })
@@ -297,6 +313,10 @@ export function Editor() {
                 >
                   Run Now
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowLogPanel(!showLogPanel)}>
+                  <Terminal className="mr-2 h-4 w-4" />
+                  {showLogPanel ? 'Hide Logs' : 'Show Logs'}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -349,6 +369,14 @@ export function Editor() {
       </div>
 
       {selectedNodeId && <ConfigPanel />}
+
+      {showLogPanel && (
+        <ExecutionLogPanel
+          logs={executionLogs}
+          status={executionStatus}
+          onClose={() => setShowLogPanel(false)}
+        />
+      )}
     </div>
   )
 }
