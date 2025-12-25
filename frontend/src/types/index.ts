@@ -419,6 +419,72 @@ export interface TimingsNodeData {
 }
 
 // =============================================================================
+// WEBSOCKET NODE DATA TYPES (Real-time streaming)
+// =============================================================================
+
+/** Subscribe LTP Node - Real-time LTP streaming */
+export interface SubscribeLTPNodeData {
+  label?: string
+  symbol: string  // Can use {{variable}} interpolation
+  exchange: string
+  outputVariable?: string  // Variable to store live LTP
+}
+
+/** Subscribe Quote Node - Real-time Quote streaming (OHLC + volume) */
+export interface SubscribeQuoteNodeData {
+  label?: string
+  symbol: string  // Can use {{variable}} interpolation
+  exchange: string
+  outputVariable?: string  // Variable to store live quote data
+}
+
+/** Subscribe Depth Node - Real-time Depth streaming (order book) */
+export interface SubscribeDepthNodeData {
+  label?: string
+  symbol: string  // Can use {{variable}} interpolation
+  exchange: string
+  outputVariable?: string  // Variable to store live depth data
+}
+
+/** Unsubscribe Node - Stop real-time streaming */
+export interface UnsubscribeNodeData {
+  label?: string
+  symbol?: string  // Symbol to unsubscribe, or empty for all
+  exchange?: string
+  streamType: 'ltp' | 'quote' | 'depth' | 'all'
+}
+
+// =============================================================================
+// RISK MANAGEMENT NODE DATA TYPES
+// =============================================================================
+
+/** Holdings Node - Get portfolio holdings */
+export interface HoldingsNodeData {
+  label?: string
+  outputVariable?: string
+}
+
+/** Funds Node - Get account funds */
+export interface FundsNodeData {
+  label?: string
+  outputVariable?: string
+}
+
+/** Margin Node - Calculate margin requirements */
+export interface MarginNodeData {
+  label?: string
+  positions: Array<{
+    symbol: string
+    exchange: string
+    action: 'BUY' | 'SELL'
+    quantity: number
+    product: 'MIS' | 'CNC' | 'NRML'
+    priceType: 'MARKET' | 'LIMIT'
+  }>
+  outputVariable?: string
+}
+
+// =============================================================================
 // UTILITY NODE DATA TYPES
 // =============================================================================
 
@@ -525,6 +591,13 @@ export type DataNodeData =
   | OptionChainNodeData
   | HolidaysNodeData
   | TimingsNodeData
+  | SubscribeLTPNodeData
+  | SubscribeQuoteNodeData
+  | SubscribeDepthNodeData
+  | UnsubscribeNodeData
+  | HoldingsNodeData
+  | FundsNodeData
+  | MarginNodeData
 
 /** All Utility Node Data Types */
 export type UtilityNodeData =
@@ -606,6 +679,15 @@ export const NODE_TYPES = {
   OPTION_CHAIN: 'optionChain',
   HOLIDAYS: 'holidays',
   TIMINGS: 'timings',
+  // WebSocket (Real-time)
+  SUBSCRIBE_LTP: 'subscribeLtp',
+  SUBSCRIBE_QUOTE: 'subscribeQuote',
+  SUBSCRIBE_DEPTH: 'subscribeDepth',
+  UNSUBSCRIBE: 'unsubscribe',
+  // Risk Management
+  HOLDINGS: 'holdings',
+  FUNDS: 'funds',
+  MARGIN: 'margin',
   // Utilities
   TELEGRAM_ALERT: 'telegramAlert',
   DELAY: 'delay',

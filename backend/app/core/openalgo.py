@@ -395,6 +395,18 @@ class OpenAlgoClient:
         """Get market timings using SDK"""
         return self.client.timings(date=date)
 
+    def holdings(self) -> dict:
+        """Get portfolio holdings using SDK"""
+        return self.client.holdings()
+
+    def funds(self) -> dict:
+        """Get account funds using SDK"""
+        return self.client.funds()
+
+    def margin(self, positions: list) -> dict:
+        """Calculate margin requirements using SDK"""
+        return self.client.margin(positions=positions)
+
     def get_holidays(self, year: int) -> dict:
         """Get market holidays using SDK (deprecated - use holidays)"""
         return self.client.holidays(year=year)

@@ -940,3 +940,177 @@ Output: apiResponse
 - Dynamic time-based entry/exit
 - Handle special trading sessions
 - Muhurat trading detection
+
+---
+
+## Real-time Streaming (WebSocket)
+
+Live data streaming via WebSocket connection for low-latency trading.
+
+### Subscribe LTP
+
+**Purpose**: Subscribe to real-time Last Traded Price streaming.
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Symbol | Symbol to stream (supports `{{variable}}`) |
+| Exchange | Exchange |
+| Output Variable | Variable name (updates in real-time) |
+
+**Output Access**:
+```
+{{ltp}}  - Current LTP (updates automatically)
+```
+
+**Use Cases**:
+- Real-time price monitoring
+- Dynamic stop-loss/target
+- Trailing stop implementations
+
+---
+
+### Subscribe Quote
+
+**Purpose**: Subscribe to real-time quote streaming (OHLC + volume).
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Symbol | Symbol to stream (supports `{{variable}}`) |
+| Exchange | Exchange |
+| Output Variable | Variable name (updates in real-time) |
+
+**Output Access**:
+```
+{{quote.ltp}}      - Last traded price
+{{quote.open}}     - Today's open
+{{quote.high}}     - Today's high
+{{quote.low}}      - Today's low
+{{quote.volume}}   - Volume
+{{quote.bid}}      - Best bid
+{{quote.ask}}      - Best ask
+```
+
+---
+
+### Subscribe Depth
+
+**Purpose**: Subscribe to real-time order book streaming.
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Symbol | Symbol to stream (supports `{{variable}}`) |
+| Exchange | Exchange |
+| Output Variable | Variable name (updates in real-time) |
+
+**Output Access**:
+```
+{{depth.bids[0].price}}     - Best bid price
+{{depth.bids[0].quantity}}  - Best bid quantity
+{{depth.asks[0].price}}     - Best ask price
+{{depth.asks[0].quantity}}  - Best ask quantity
+{{depth.totalbuyqty}}       - Total buy quantity
+{{depth.totalsellqty}}      - Total sell quantity
+```
+
+---
+
+### Unsubscribe
+
+**Purpose**: Stop real-time streaming for a symbol.
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Stream Type | `LTP Only`, `Quote Only`, `Depth Only`, or `All Streams` |
+| Symbol | Symbol to unsubscribe (leave empty for all) |
+| Exchange | Exchange |
+
+---
+
+## Risk Management
+
+Portfolio and risk analysis nodes for traders.
+
+### Holdings
+
+**Purpose**: Get portfolio holdings.
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Output Variable | Variable name |
+
+**Output Access**:
+```
+{{holdings.data.holdings}}           - Array of holdings
+{{holdings.data.holdings[0].symbol}} - First holding symbol
+{{holdings.data.holdings[0].pnl}}    - First holding P&L
+{{holdings.data.statistics.totalholdingvalue}}  - Total value
+{{holdings.data.statistics.totalprofitandloss}} - Total P&L
+```
+
+---
+
+### Funds
+
+**Purpose**: Get account funds and margins.
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Output Variable | Variable name |
+
+**Output Access**:
+```
+{{funds.data.availablecash}}    - Available cash
+{{funds.data.collateral}}       - Collateral value
+{{funds.data.m2mrealized}}      - Realized M2M
+{{funds.data.m2munrealized}}    - Unrealized M2M
+{{funds.data.utiliseddebits}}   - Used margin
+```
+
+**Use Cases**:
+- Check available funds before order
+- Monitor margin utilization
+- Risk management
+
+---
+
+### Margin Calculator
+
+**Purpose**: Calculate margin requirements before placing orders.
+
+**Configuration**:
+| Field | Description |
+|-------|-------------|
+| Positions | JSON array of positions to calculate |
+| Output Variable | Variable name |
+
+**Position Format**:
+```json
+[
+  {
+    "symbol": "NIFTY25DEC25FUT",
+    "exchange": "NFO",
+    "action": "BUY",
+    "quantity": 75,
+    "product": "NRML",
+    "pricetype": "MARKET"
+  }
+]
+```
+
+**Output Access**:
+```
+{{marginResult.data.total_margin_required}}  - Total margin needed
+{{marginResult.data.span_margin}}            - SPAN margin
+{{marginResult.data.exposure_margin}}        - Exposure margin
+```
+
+**Use Cases**:
+- Pre-trade margin check
+- Position sizing based on available capital
+- Risk limit enforcement

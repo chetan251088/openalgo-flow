@@ -31,6 +31,10 @@ import {
   Calculator,
   Grid3X3,
   CalendarX,
+  Radio,
+  RadioTower,
+  WifiOff,
+  Shield,
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -334,6 +338,60 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
       icon: <Grid3X3 className="h-3.5 w-3.5 text-primary" />,
       color: 'bg-primary/10',
     },
+    // Risk Management
+    {
+      type: 'holdings',
+      label: 'Holdings',
+      description: 'Portfolio holdings',
+      icon: <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
+      color: 'bg-amber-500/10',
+    },
+    {
+      type: 'funds',
+      label: 'Funds',
+      description: 'Account balance',
+      icon: <Wallet className="h-3.5 w-3.5 text-amber-500" />,
+      color: 'bg-amber-500/10',
+    },
+    {
+      type: 'margin',
+      label: 'Margin Calc',
+      description: 'Margin required',
+      icon: <Shield className="h-3.5 w-3.5 text-amber-500" />,
+      color: 'bg-amber-500/10',
+    },
+  ]
+
+  // Real-time WebSocket Streaming
+  const streaming = [
+    {
+      type: 'subscribeLtp',
+      label: 'Subscribe LTP',
+      description: 'Live price stream',
+      icon: <Radio className="h-3.5 w-3.5 text-green-500" />,
+      color: 'bg-green-500/10',
+    },
+    {
+      type: 'subscribeQuote',
+      label: 'Subscribe Quote',
+      description: 'Live OHLC stream',
+      icon: <RadioTower className="h-3.5 w-3.5 text-green-500" />,
+      color: 'bg-green-500/10',
+    },
+    {
+      type: 'subscribeDepth',
+      label: 'Subscribe Depth',
+      description: 'Live order book',
+      icon: <Layers3 className="h-3.5 w-3.5 text-green-500" />,
+      color: 'bg-green-500/10',
+    },
+    {
+      type: 'unsubscribe',
+      label: 'Unsubscribe',
+      description: 'Stop streaming',
+      icon: <WifiOff className="h-3.5 w-3.5 text-red-500" />,
+      color: 'bg-red-500/10',
+    },
   ]
 
   const utilities = [
@@ -413,19 +471,22 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
       <Tabs defaultValue="triggers" className="flex-1">
         <div className="border-b border-border px-1 py-1.5">
           <TabsList className="h-7 w-full">
-            <TabsTrigger value="triggers" className="flex-1 text-[9px] px-0.5">
-              Triggers
+            <TabsTrigger value="triggers" className="flex-1 text-[8px] px-0.5">
+              Trigger
             </TabsTrigger>
-            <TabsTrigger value="actions" className="flex-1 text-[9px] px-0.5">
-              Actions
+            <TabsTrigger value="actions" className="flex-1 text-[8px] px-0.5">
+              Action
             </TabsTrigger>
-            <TabsTrigger value="data" className="flex-1 text-[9px] px-0.5">
+            <TabsTrigger value="data" className="flex-1 text-[8px] px-0.5">
               Data
             </TabsTrigger>
-            <TabsTrigger value="conditions" className="flex-1 text-[9px] px-0.5">
+            <TabsTrigger value="stream" className="flex-1 text-[8px] px-0.5">
+              Stream
+            </TabsTrigger>
+            <TabsTrigger value="conditions" className="flex-1 text-[8px] px-0.5">
               Logic
             </TabsTrigger>
-            <TabsTrigger value="utilities" className="flex-1 text-[9px] px-0.5">
+            <TabsTrigger value="utilities" className="flex-1 text-[8px] px-0.5">
               Util
             </TabsTrigger>
           </TabsList>
@@ -456,6 +517,17 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
           <TabsContent value="data" className="m-0 p-2">
             <div className="space-y-1.5">
               {data.map((node) => (
+                <NodeItem
+                  key={node.type}
+                  {...node}
+                  onDragStart={onDragStart}
+                />
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="stream" className="m-0 p-2">
+            <div className="space-y-1.5">
+              {streaming.map((node) => (
                 <NodeItem
                   key={node.type}
                   {...node}

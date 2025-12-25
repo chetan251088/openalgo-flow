@@ -195,6 +195,15 @@ const NODE_TITLES: Record<string, string> = {
   optionChain: 'Option Chain',
   holidays: 'Market Holidays',
   timings: 'Market Timings',
+  // WebSocket Streaming
+  subscribeLtp: 'Subscribe LTP',
+  subscribeQuote: 'Subscribe Quote',
+  subscribeDepth: 'Subscribe Depth',
+  unsubscribe: 'Unsubscribe',
+  // Risk Management
+  holdings: 'Holdings',
+  funds: 'Funds',
+  margin: 'Margin Calculator',
 }
 
 export function ConfigPanel() {
@@ -2771,6 +2780,274 @@ export function ConfigPanel() {
                 />
                 <p className="text-[10px] text-muted-foreground">
                   Use {'{{timings.data}}'} to access exchange timings
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* ===== WEBSOCKET STREAMING NODES ===== */}
+          {nodeType === 'subscribeLtp' && (
+            <>
+              <div className="space-y-2">
+                <Label>Symbol</Label>
+                <Input
+                  placeholder="e.g., RELIANCE or {{symbol}}"
+                  value={(nodeData.symbol as string) || ''}
+                  onChange={(e) => handleDataChange('symbol', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Exchange</Label>
+                <Select
+                  value={(nodeData.exchange as string) || 'NSE'}
+                  onValueChange={(v) => handleDataChange('exchange', v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXCHANGES.map((ex) => (
+                      <SelectItem key={ex.value} value={ex.value}>
+                        {ex.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Output Variable</Label>
+                <Input
+                  placeholder="ltp"
+                  value={(nodeData.outputVariable as string) || 'ltp'}
+                  onChange={(e) => handleDataChange('outputVariable', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Access via {'{{ltp}}'} - updates in real-time
+                </p>
+              </div>
+            </>
+          )}
+
+          {nodeType === 'subscribeQuote' && (
+            <>
+              <div className="space-y-2">
+                <Label>Symbol</Label>
+                <Input
+                  placeholder="e.g., RELIANCE or {{symbol}}"
+                  value={(nodeData.symbol as string) || ''}
+                  onChange={(e) => handleDataChange('symbol', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Exchange</Label>
+                <Select
+                  value={(nodeData.exchange as string) || 'NSE'}
+                  onValueChange={(v) => handleDataChange('exchange', v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXCHANGES.map((ex) => (
+                      <SelectItem key={ex.value} value={ex.value}>
+                        {ex.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Output Variable</Label>
+                <Input
+                  placeholder="quote"
+                  value={(nodeData.outputVariable as string) || 'quote'}
+                  onChange={(e) => handleDataChange('outputVariable', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Access: {'{{quote.ltp}}'}, {'{{quote.open}}'}, {'{{quote.high}}'}, {'{{quote.low}}'}
+                </p>
+              </div>
+            </>
+          )}
+
+          {nodeType === 'subscribeDepth' && (
+            <>
+              <div className="space-y-2">
+                <Label>Symbol</Label>
+                <Input
+                  placeholder="e.g., RELIANCE or {{symbol}}"
+                  value={(nodeData.symbol as string) || ''}
+                  onChange={(e) => handleDataChange('symbol', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Exchange</Label>
+                <Select
+                  value={(nodeData.exchange as string) || 'NSE'}
+                  onValueChange={(v) => handleDataChange('exchange', v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXCHANGES.map((ex) => (
+                      <SelectItem key={ex.value} value={ex.value}>
+                        {ex.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Output Variable</Label>
+                <Input
+                  placeholder="depth"
+                  value={(nodeData.outputVariable as string) || 'depth'}
+                  onChange={(e) => handleDataChange('outputVariable', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Access: {'{{depth.bids[0].price}}'}, {'{{depth.asks[0].price}}'}
+                </p>
+              </div>
+            </>
+          )}
+
+          {nodeType === 'unsubscribe' && (
+            <>
+              <div className="space-y-2">
+                <Label>Stream Type</Label>
+                <Select
+                  value={(nodeData.streamType as string) || 'all'}
+                  onValueChange={(v) => handleDataChange('streamType', v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ltp">LTP Only</SelectItem>
+                    <SelectItem value="quote">Quote Only</SelectItem>
+                    <SelectItem value="depth">Depth Only</SelectItem>
+                    <SelectItem value="all">All Streams</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Symbol (optional)</Label>
+                <Input
+                  placeholder="Leave empty for all symbols"
+                  value={(nodeData.symbol as string) || ''}
+                  onChange={(e) => handleDataChange('symbol', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Exchange</Label>
+                <Select
+                  value={(nodeData.exchange as string) || 'NSE'}
+                  onValueChange={(v) => handleDataChange('exchange', v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXCHANGES.map((ex) => (
+                      <SelectItem key={ex.value} value={ex.value}>
+                        {ex.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          {/* ===== RISK MANAGEMENT NODES ===== */}
+          {nodeType === 'holdings' && (
+            <>
+              <div className="space-y-2">
+                <Label>Output Variable</Label>
+                <Input
+                  placeholder="holdings"
+                  value={(nodeData.outputVariable as string) || 'holdings'}
+                  onChange={(e) => handleDataChange('outputVariable', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Access: {'{{holdings.data[0].symbol}}'}, {'{{holdings.data[0].pnl}}'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-3 text-[11px] text-muted-foreground">
+                <strong>Output includes:</strong>
+                <ul className="mt-1 list-inside list-disc">
+                  <li>symbol, quantity, pnl, pnlpercent</li>
+                  <li>totalholdingvalue, totalinvvalue</li>
+                  <li>totalprofitandloss, totalpnlpercentage</li>
+                </ul>
+              </div>
+            </>
+          )}
+
+          {nodeType === 'funds' && (
+            <>
+              <div className="space-y-2">
+                <Label>Output Variable</Label>
+                <Input
+                  placeholder="funds"
+                  value={(nodeData.outputVariable as string) || 'funds'}
+                  onChange={(e) => handleDataChange('outputVariable', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Access: {'{{funds.data.availablecash}}'}, {'{{funds.data.collateral}}'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-3 text-[11px] text-muted-foreground">
+                <strong>Output includes:</strong>
+                <ul className="mt-1 list-inside list-disc">
+                  <li>availablecash - Available cash balance</li>
+                  <li>collateral - Collateral value</li>
+                  <li>m2mrealized - Realized M2M</li>
+                  <li>m2munrealized - Unrealized M2M</li>
+                  <li>utiliseddebits - Used margin</li>
+                </ul>
+              </div>
+            </>
+          )}
+
+          {nodeType === 'margin' && (
+            <>
+              <div className="rounded-lg bg-amber-500/10 p-3 text-[11px] text-amber-500">
+                <strong>Margin Calculator</strong>
+                <p className="mt-1">
+                  Calculates margin required for positions before placing orders.
+                  Useful for risk management.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Positions (JSON format)</Label>
+                <textarea
+                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder={`[
+  {"symbol": "NIFTY25DEC25FUT", "exchange": "NFO", "action": "BUY", "quantity": 75, "product": "NRML", "pricetype": "MARKET"}
+]`}
+                  value={typeof nodeData.positionsJson === 'string' ? nodeData.positionsJson : JSON.stringify(nodeData.positions || [], null, 2)}
+                  onChange={(e) => {
+                    handleDataChange('positionsJson', e.target.value)
+                    try {
+                      const positions = JSON.parse(e.target.value)
+                      handleDataChange('positions', positions)
+                    } catch {
+                      // Invalid JSON, keep as string
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Output Variable</Label>
+                <Input
+                  placeholder="marginResult"
+                  value={(nodeData.outputVariable as string) || 'marginResult'}
+                  onChange={(e) => handleDataChange('outputVariable', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Access: {'{{marginResult.data.total_margin_required}}'}
                 </p>
               </div>
             </>

@@ -52,6 +52,17 @@ import { OptionChainNode } from './OptionChainNode'
 import { HolidaysNode } from './HolidaysNode'
 import { TimingsNode } from './TimingsNode'
 
+// WebSocket Streaming Nodes
+import { SubscribeLTPNode } from './SubscribeLTPNode'
+import { SubscribeQuoteNode } from './SubscribeQuoteNode'
+import { SubscribeDepthNode } from './SubscribeDepthNode'
+import { UnsubscribeNode } from './UnsubscribeNode'
+
+// Risk Management Nodes
+import { HoldingsNode } from './HoldingsNode'
+import { FundsNode } from './FundsNode'
+import { MarginNode } from './MarginNode'
+
 // Utility Nodes
 import { TelegramAlertNode } from './TelegramAlertNode'
 import { DelayNode } from './DelayNode'
@@ -107,6 +118,15 @@ export {
   PositionBookNode,
   SyntheticFutureNode,
   OptionChainNode,
+  // WebSocket Streaming
+  SubscribeLTPNode,
+  SubscribeQuoteNode,
+  SubscribeDepthNode,
+  UnsubscribeNode,
+  // Risk Management
+  HoldingsNode,
+  FundsNode,
+  MarginNode,
   // Utilities
   TelegramAlertNode,
   DelayNode,
@@ -169,6 +189,17 @@ export const nodeTypes = {
   positionBook: PositionBookNode,
   syntheticFuture: SyntheticFutureNode,
   optionChain: OptionChainNode,
+
+  // WebSocket Streaming
+  subscribeLtp: SubscribeLTPNode,
+  subscribeQuote: SubscribeQuoteNode,
+  subscribeDepth: SubscribeDepthNode,
+  unsubscribe: UnsubscribeNode,
+
+  // Risk Management
+  holdings: HoldingsNode,
+  funds: FundsNode,
+  margin: MarginNode,
 
   // Utilities
   telegramAlert: TelegramAlertNode,

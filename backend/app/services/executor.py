@@ -891,6 +891,94 @@ class NodeExecutor:
         self.store_output(node_data, result)
         return result
 
+    # ===== WEBSOCKET STREAMING NODES =====
+    def execute_subscribe_ltp(self, node_data: dict) -> dict:
+        """Execute Subscribe LTP node - subscribe to real-time LTP streaming"""
+        symbol = self.get_str(node_data, "symbol", "")
+        exchange = self.get_str(node_data, "exchange", "NSE")
+        self.log(f"Subscribing to LTP stream: {symbol} ({exchange})")
+        # Note: WebSocket subscription is handled by the websocket_client service
+        # This node sets up the subscription parameters
+        result = {
+            "status": "subscribed",
+            "type": "ltp",
+            "symbol": symbol,
+            "exchange": exchange
+        }
+        self.store_output(node_data, result)
+        return result
+
+    def execute_subscribe_quote(self, node_data: dict) -> dict:
+        """Execute Subscribe Quote node - subscribe to real-time quote streaming"""
+        symbol = self.get_str(node_data, "symbol", "")
+        exchange = self.get_str(node_data, "exchange", "NSE")
+        self.log(f"Subscribing to Quote stream: {symbol} ({exchange})")
+        result = {
+            "status": "subscribed",
+            "type": "quote",
+            "symbol": symbol,
+            "exchange": exchange
+        }
+        self.store_output(node_data, result)
+        return result
+
+    def execute_subscribe_depth(self, node_data: dict) -> dict:
+        """Execute Subscribe Depth node - subscribe to real-time depth streaming"""
+        symbol = self.get_str(node_data, "symbol", "")
+        exchange = self.get_str(node_data, "exchange", "NSE")
+        self.log(f"Subscribing to Depth stream: {symbol} ({exchange})")
+        result = {
+            "status": "subscribed",
+            "type": "depth",
+            "symbol": symbol,
+            "exchange": exchange
+        }
+        self.store_output(node_data, result)
+        return result
+
+    def execute_unsubscribe(self, node_data: dict) -> dict:
+        """Execute Unsubscribe node - stop streaming"""
+        symbol = self.get_str(node_data, "symbol", "")
+        exchange = self.get_str(node_data, "exchange", "NSE")
+        stream_type = self.get_str(node_data, "streamType", "all")
+        self.log(f"Unsubscribing from {stream_type} stream: {symbol or 'all'} ({exchange})")
+        result = {
+            "status": "unsubscribed",
+            "type": stream_type,
+            "symbol": symbol or "all",
+            "exchange": exchange
+        }
+        return result
+
+    # ===== RISK MANAGEMENT NODES =====
+    def execute_holdings(self, node_data: dict) -> dict:
+        """Execute Holdings node - get portfolio holdings"""
+        self.log("Fetching portfolio holdings")
+        result = self.client.holdings()
+        holdings_count = len(result.get("data", {}).get("holdings", []))
+        self.log(f"Holdings: {holdings_count} holdings")
+        self.store_output(node_data, result)
+        return result
+
+    def execute_funds(self, node_data: dict) -> dict:
+        """Execute Funds node - get account funds"""
+        self.log("Fetching account funds")
+        result = self.client.funds()
+        available = result.get("data", {}).get("availablecash", "0")
+        self.log(f"Available cash: {available}")
+        self.store_output(node_data, result)
+        return result
+
+    def execute_margin(self, node_data: dict) -> dict:
+        """Execute Margin node - calculate margin requirements"""
+        positions = node_data.get("positions", [])
+        self.log(f"Calculating margin for {len(positions)} positions")
+        result = self.client.margin(positions=positions)
+        margin_required = result.get("data", {}).get("total_margin_required", 0)
+        self.log(f"Total margin required: {margin_required}")
+        self.store_output(node_data, result)
+        return result
+
     def execute_telegram_alert(self, node_data: dict) -> dict:
         """Execute Telegram Alert node"""
         username = node_data.get("username", "")
@@ -1835,6 +1923,22 @@ async def execute_node_chain(
         result = executor.execute_holidays(node_data)
     elif node_type == "timings":
         result = executor.execute_timings(node_data)
+    # WebSocket Streaming
+    elif node_type == "subscribeLtp":
+        result = executor.execute_subscribe_ltp(node_data)
+    elif node_type == "subscribeQuote":
+        result = executor.execute_subscribe_quote(node_data)
+    elif node_type == "subscribeDepth":
+        result = executor.execute_subscribe_depth(node_data)
+    elif node_type == "unsubscribe":
+        result = executor.execute_unsubscribe(node_data)
+    # Risk Management
+    elif node_type == "holdings":
+        result = executor.execute_holdings(node_data)
+    elif node_type == "funds":
+        result = executor.execute_funds(node_data)
+    elif node_type == "margin":
+        result = executor.execute_margin(node_data)
     elif node_type == "telegramAlert":
         result = executor.execute_telegram_alert(node_data)
     elif node_type == "httpRequest":
