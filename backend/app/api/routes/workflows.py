@@ -342,12 +342,16 @@ async def get_webhook_info(
         await db.refresh(workflow)
 
     base_url = f"{settings.webhook_host_url}/api/webhook/{workflow.webhook_token}"
+    auth_type = workflow.webhook_auth_type or "payload"
+
     return {
         "webhook_token": workflow.webhook_token,
         "webhook_secret": workflow.webhook_secret,
         "webhook_enabled": workflow.webhook_enabled,
+        "webhook_auth_type": auth_type,
         "webhook_url": base_url,
-        "webhook_url_with_symbol": f"{base_url}/{{symbol}}"
+        "webhook_url_with_symbol": f"{base_url}/{{symbol}}",
+        "webhook_url_with_secret": f"{base_url}?secret={workflow.webhook_secret}" if auth_type == "url" else None
     }
 
 
@@ -380,13 +384,17 @@ async def enable_webhook(
     await db.commit()
 
     base_url = f"{settings.webhook_host_url}/api/webhook/{workflow.webhook_token}"
+    auth_type = workflow.webhook_auth_type or "payload"
+
     return {
         "status": "success",
         "message": "Webhook enabled",
         "webhook_token": workflow.webhook_token,
         "webhook_secret": workflow.webhook_secret,
+        "webhook_auth_type": auth_type,
         "webhook_url": base_url,
-        "webhook_url_with_symbol": f"{base_url}/{{symbol}}"
+        "webhook_url_with_symbol": f"{base_url}/{{symbol}}",
+        "webhook_url_with_secret": f"{base_url}?secret={workflow.webhook_secret}" if auth_type == "url" else None
     }
 
 
@@ -473,4 +481,49 @@ async def regenerate_webhook_secret(
         "status": "success",
         "message": "Webhook secret regenerated",
         "webhook_secret": workflow.webhook_secret
+    }
+
+
+@router.post("/{workflow_id}/webhook/auth-type")
+@limiter.limit(API_LIMIT)
+async def update_webhook_auth_type(
+    request: Request,
+    workflow_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: bool = Depends(get_current_admin)
+):
+    """Update webhook authentication type
+
+    auth_type can be:
+    - "payload": Secret must be in JSON payload (for TradingView, custom scripts)
+    - "url": Secret must be in URL query param (for Chartink, fixed-format services)
+    """
+    body = await request.json()
+    auth_type = body.get("auth_type", "payload")
+
+    if auth_type not in ["payload", "url"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid auth_type. Must be 'payload' or 'url'"
+        )
+
+    result = await db.execute(
+        select(Workflow).where(Workflow.id == workflow_id)
+    )
+    workflow = result.scalar_one_or_none()
+
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    workflow.webhook_auth_type = auth_type
+    await db.commit()
+
+    base_url = f"{settings.webhook_host_url}/api/webhook/{workflow.webhook_token}"
+
+    return {
+        "status": "success",
+        "message": f"Webhook auth type set to '{auth_type}'",
+        "webhook_auth_type": auth_type,
+        "webhook_url": base_url,
+        "webhook_url_with_secret": f"{base_url}?secret={workflow.webhook_secret}" if auth_type == "url" else None
     }

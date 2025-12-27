@@ -23,6 +23,7 @@ router = APIRouter(prefix="/webhook", tags=["webhook"])
 async def trigger_webhook(
     request: Request,
     token: str,
+    secret: Optional[str] = None,  # Secret in URL query param
     payload: Optional[Dict[str, Any]] = None
 ):
     """
@@ -31,16 +32,20 @@ async def trigger_webhook(
     This is a public endpoint - no authentication required.
     The token in the URL identifies which workflow to trigger.
 
+    Authentication can be done via:
+    1. URL query parameter: ?secret=your_secret (for Chartink, etc.)
+    2. Payload field: {"secret": "your_secret", ...} (for TradingView, etc.)
+
     The payload body is passed as variables to the workflow context,
     accessible via {{webhook.field}} syntax.
 
     Example:
-        POST /api/webhook/abc123xyz
+        POST /api/webhook/abc123xyz?secret=your_secret
         Body: {"symbol": "RELIANCE", "action": "BUY", "quantity": 10}
 
         In workflow, use: {{webhook.symbol}}, {{webhook.action}}, {{webhook.quantity}}
     """
-    return await _execute_webhook(token, payload)
+    return await _execute_webhook(token, payload, url_secret=secret)
 
 
 @router.post("/{token}/{symbol}")
@@ -49,6 +54,7 @@ async def trigger_webhook_with_symbol(
     request: Request,
     token: str,
     symbol: str,
+    secret: Optional[str] = None,  # Secret in URL query param
     payload: Optional[Dict[str, Any]] = None
 ):
     """
@@ -58,8 +64,12 @@ async def trigger_webhook_with_symbol(
     The token in the URL identifies which workflow to trigger.
     The symbol is automatically injected into the webhook data.
 
+    Authentication can be done via:
+    1. URL query parameter: ?secret=your_secret (for Chartink, etc.)
+    2. Payload field: {"secret": "your_secret", ...} (for TradingView, etc.)
+
     Example:
-        POST /api/webhook/abc123xyz/RELIANCE
+        POST /api/webhook/abc123xyz/RELIANCE?secret=your_secret
         Body: {"action": "BUY", "quantity": 10}
 
         In workflow, use: {{webhook.symbol}}, {{webhook.action}}, {{webhook.quantity}}
@@ -68,11 +78,20 @@ async def trigger_webhook_with_symbol(
     webhook_data = payload or {}
     webhook_data["symbol"] = symbol
 
-    return await _execute_webhook(token, webhook_data)
+    return await _execute_webhook(token, webhook_data, url_secret=secret)
 
 
-async def _execute_webhook(token: str, webhook_data: Optional[Dict[str, Any]] = None):
-    """Internal function to execute webhook"""
+async def _execute_webhook(
+    token: str,
+    webhook_data: Optional[Dict[str, Any]] = None,
+    url_secret: Optional[str] = None
+):
+    """Internal function to execute webhook
+
+    Supports two authentication methods based on workflow.webhook_auth_type:
+    - "payload": Secret must be in JSON payload (TradingView, custom scripts)
+    - "url": Secret must be in URL query param (Chartink, fixed-format services)
+    """
     async with async_session_maker() as db:
         # Find workflow by webhook token
         result = await db.execute(
@@ -86,15 +105,30 @@ async def _execute_webhook(token: str, webhook_data: Optional[Dict[str, Any]] = 
         if not workflow.webhook_enabled:
             raise HTTPException(status_code=403, detail="Webhook is not enabled for this workflow")
 
-        # Validate webhook secret from payload
+        # Validate webhook secret based on auth type
         data = webhook_data or {}
-        provided_secret = data.pop("secret", None)  # Remove secret from data before processing
+        auth_type = workflow.webhook_auth_type or "payload"
 
         if workflow.webhook_secret:
-            if not provided_secret:
-                raise HTTPException(status_code=401, detail="Missing webhook secret in payload")
-            if provided_secret != workflow.webhook_secret:
-                raise HTTPException(status_code=401, detail="Invalid webhook secret")
+            if auth_type == "url":
+                # Secret expected in URL query parameter
+                if not url_secret:
+                    raise HTTPException(
+                        status_code=401,
+                        detail="Missing webhook secret in URL. Use ?secret=your_secret"
+                    )
+                if url_secret != workflow.webhook_secret:
+                    raise HTTPException(status_code=401, detail="Invalid webhook secret")
+            else:
+                # Secret expected in payload (default)
+                provided_secret = data.pop("secret", None)  # Remove secret from data before processing
+                if not provided_secret:
+                    raise HTTPException(
+                        status_code=401,
+                        detail="Missing webhook secret in payload. Add 'secret' field to JSON body"
+                    )
+                if provided_secret != workflow.webhook_secret:
+                    raise HTTPException(status_code=401, detail="Invalid webhook secret")
 
         # Execute the workflow with webhook payload as variables
         from app.services.executor import execute_workflow

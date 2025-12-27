@@ -300,38 +300,39 @@ uv run migration/migrate_all.py
 
 ## Webhook Trigger
 
-OpenAlgo Flow supports external webhook triggers, allowing you to trigger workflows from TradingView, custom scripts, or any HTTP client.
+OpenAlgo Flow supports external webhook triggers, allowing you to trigger workflows from TradingView, Chartink, custom scripts, or any HTTP client.
 
 ### How It Works
 
 1. Each workflow has a unique **Webhook URL** and **Webhook Secret**
 2. External systems send a POST request with JSON payload
-3. The secret is validated before execution
+3. The secret is validated before execution (supports two auth methods)
 4. Payload data is available as `{{webhook.*}}` variables
+
+### Authentication Methods
+
+OpenAlgo Flow supports two authentication methods to accommodate different services:
+
+| Method | Use Case | How It Works |
+|--------|----------|--------------|
+| **Secret in Payload** | TradingView, custom scripts | Include `"secret": "your_secret"` in JSON body |
+| **Secret in URL** | Chartink, fixed-format services | Append `?secret=your_secret` to webhook URL |
+
+Configure the authentication method from Dashboard > Workflow Menu > Webhook.
 
 ### Webhook URL Formats
 
 ```
-# Generic webhook
+# Generic webhook (secret in payload)
 POST https://your-host/api/webhook/{token}
+
+# With secret in URL (for Chartink, etc.)
+POST https://your-host/api/webhook/{token}?secret=your_secret
 
 # With symbol in URL
 POST https://your-host/api/webhook/{token}/{symbol}
+POST https://your-host/api/webhook/{token}/{symbol}?secret=your_secret
 ```
-
-### Required JSON Payload
-
-```json
-{
-  "secret": "your_webhook_secret_here",
-  "symbol": "RELIANCE",
-  "action": "BUY",
-  "quantity": 10,
-  "price": 2500.50
-}
-```
-
-The `secret` field is **required** for authentication. You can add any custom fields.
 
 ### Accessing Webhook Data
 
@@ -341,6 +342,9 @@ The `secret` field is **required** for authentication. You can add any custom fi
 | `{{webhook.action}}` | Action (BUY/SELL) |
 | `{{webhook.price}}` | Price from payload |
 | `{{webhook.quantity}}` | Quantity from payload |
+| `{{webhook.stocks}}` | Stocks from Chartink payload |
+| `{{webhook.trigger_prices}}` | Trigger prices from Chartink |
+| `{{webhook.scan_name}}` | Scan name from Chartink |
 | `{{webhook.custom_field}}` | Any custom field you send |
 
 ### Managing Webhooks
@@ -348,7 +352,8 @@ The `secret` field is **required** for authentication. You can add any custom fi
 **From Dashboard:**
 1. Click the menu (⋮) on any workflow card
 2. Select "Webhook"
-3. Enable webhook and copy URL & secret
+3. Enable webhook and choose authentication method
+4. Copy URL & secret
 
 **From Editor:**
 1. Add a "Webhook Trigger" node
@@ -358,7 +363,7 @@ The `secret` field is **required** for authentication. You can add any custom fi
 ### Example: TradingView Alert
 
 1. Create workflow with Webhook Trigger node
-2. Enable webhook from Dashboard
+2. Enable webhook from Dashboard (use "Secret in Payload" auth)
 3. In TradingView, create alert with webhook URL
 4. Set message body:
 
@@ -372,10 +377,32 @@ The `secret` field is **required** for authentication. You can add any custom fi
 }
 ```
 
+### Example: Chartink Scanner
+
+1. Create workflow with Webhook Trigger node
+2. Enable webhook from Dashboard (use "Secret in URL" auth)
+3. Copy the "Webhook URL (with secret)" - includes `?secret=...`
+4. In Chartink, set the webhook URL with the secret query parameter
+
+Chartink sends payloads in this format (cannot be modified):
+```json
+{
+  "stocks": "RELIANCE,INFY,TCS",
+  "trigger_prices": "2500.50,1800.25,3500.00",
+  "triggered_at": "9:30 am",
+  "scan_name": "My Scanner",
+  "scan_url": "my-scanner",
+  "alert_name": "Buy Alert"
+}
+```
+
+Access data in workflow using `{{webhook.stocks}}`, `{{webhook.scan_name}}`, etc.
+
 ### Security
 
 - Each workflow has unique token (URL) and secret
 - Secret is validated on every request
+- Two auth methods: payload-based or URL-based
 - Failed auth returns 401 Unauthorized
 - Rate limit: 30 requests/minute per endpoint
 

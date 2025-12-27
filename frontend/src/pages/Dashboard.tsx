@@ -139,6 +139,17 @@ function WorkflowCard({ workflow }: { workflow: WorkflowListItem }) {
     },
   })
 
+  const updateAuthTypeMutation = useMutation({
+    mutationFn: (authType: 'payload' | 'url') => workflowsApi.updateWebhookAuthType(workflow.id, authType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['webhook', workflow.id] })
+      toast({ title: 'Authentication type updated', variant: 'success' })
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    },
+  })
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast({ title: `${label} copied to clipboard` })
@@ -286,6 +297,45 @@ function WorkflowCard({ workflow }: { workflow: WorkflowListItem }) {
                 />
               </div>
 
+              {/* Authentication Type */}
+              <div className="space-y-3">
+                <Label>Authentication Method</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    className={cn(
+                      'rounded-lg border p-4 text-left transition-all',
+                      webhookQuery.data.webhook_auth_type === 'payload'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    )}
+                    onClick={() => updateAuthTypeMutation.mutate('payload')}
+                    disabled={updateAuthTypeMutation.isPending}
+                  >
+                    <div className="font-medium">Secret in Payload</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      For TradingView, custom scripts
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      'rounded-lg border p-4 text-left transition-all',
+                      webhookQuery.data.webhook_auth_type === 'url'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    )}
+                    onClick={() => updateAuthTypeMutation.mutate('url')}
+                    disabled={updateAuthTypeMutation.isPending}
+                  >
+                    <div className="font-medium">Secret in URL</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      For Chartink, fixed-format services
+                    </p>
+                  </button>
+                </div>
+              </div>
+
               {/* Webhook URL */}
               <div className="space-y-2">
                 <Label>Webhook URL</Label>
@@ -356,23 +406,72 @@ function WorkflowCard({ workflow }: { workflow: WorkflowListItem }) {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Include this secret in your webhook payload as "secret" field
+                  {webhookQuery.data.webhook_auth_type === 'url'
+                    ? 'Append this secret to URL as ?secret=...'
+                    : 'Include this secret in your webhook payload as "secret" field'}
                 </p>
               </div>
 
-              {/* Example Payload */}
+              {/* URL with Secret (for URL auth type) */}
+              {webhookQuery.data.webhook_auth_type === 'url' && webhookQuery.data.webhook_url_with_secret && (
+                <div className="space-y-2">
+                  <Label>Webhook URL (with secret)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={showSecret ? webhookQuery.data.webhook_url_with_secret : webhookQuery.data.webhook_url + '?secret=••••••••'}
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(webhookQuery.data.webhook_url_with_secret!, 'URL with secret')}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Use this URL for Chartink and other services with fixed payloads
+                  </p>
+                </div>
+              )}
+
+              {/* Example Usage */}
               <div className="space-y-2">
-                <Label>Example Payload</Label>
+                <Label>Example Usage</Label>
                 <div className="rounded-lg bg-muted p-4">
-                  <pre className="text-xs font-mono overflow-x-auto">
-{`{
+                  {webhookQuery.data.webhook_auth_type === 'url' ? (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-2">For Chartink (secret in URL):</p>
+                      <pre className="text-xs font-mono overflow-x-auto">
+{`POST ${webhookQuery.data.webhook_url}?secret=${showSecret ? webhookQuery.data.webhook_secret : '••••••••'}
+
+Chartink payload (sent as-is):
+{
+  "stocks": "RELIANCE,INFY,TCS",
+  "trigger_prices": "2500.50,1800.25,3500.00",
+  "triggered_at": "9:30 am",
+  "scan_name": "My Scanner",
+  "alert_name": "Buy Alert"
+}`}
+                      </pre>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-2">For TradingView (secret in payload):</p>
+                      <pre className="text-xs font-mono overflow-x-auto">
+{`POST ${webhookQuery.data.webhook_url}
+
+{
   "secret": "${showSecret ? webhookQuery.data.webhook_secret : '••••••••••••••••'}",
   "symbol": "RELIANCE",
   "action": "BUY",
   "quantity": 10,
   "price": 2500.50
 }`}
-                  </pre>
+                      </pre>
+                    </>
+                  )}
                 </div>
               </div>
 

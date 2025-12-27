@@ -276,8 +276,10 @@ export const workflowsApi = {
     webhook_token: string;
     webhook_secret: string;
     webhook_enabled: boolean;
+    webhook_auth_type: 'payload' | 'url';
     webhook_url: string;
     webhook_url_with_symbol: string;
+    webhook_url_with_secret: string | null;
   }>(`${API_ENDPOINTS.WORKFLOWS}/${id}/webhook`),
 
   enableWebhook: (id: number) => request<{
@@ -285,8 +287,10 @@ export const workflowsApi = {
     message: string;
     webhook_token: string;
     webhook_secret: string;
+    webhook_auth_type: 'payload' | 'url';
     webhook_url: string;
     webhook_url_with_symbol: string;
+    webhook_url_with_secret: string | null;
   }>(`${API_ENDPOINTS.WORKFLOWS}/${id}/webhook/enable`, {
     method: 'POST',
   }),
@@ -315,6 +319,17 @@ export const workflowsApi = {
     webhook_secret: string;
   }>(`${API_ENDPOINTS.WORKFLOWS}/${id}/webhook/regenerate-secret`, {
     method: 'POST',
+  }),
+
+  updateWebhookAuthType: (id: number, authType: 'payload' | 'url') => request<{
+    status: string;
+    message: string;
+    webhook_auth_type: 'payload' | 'url';
+    webhook_url: string;
+    webhook_url_with_secret: string | null;
+  }>(`${API_ENDPOINTS.WORKFLOWS}/${id}/webhook/auth-type`, {
+    method: 'POST',
+    body: JSON.stringify({ auth_type: authType }),
   }),
 };
 

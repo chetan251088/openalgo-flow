@@ -27,6 +27,7 @@ class Workflow(Base):
     webhook_token = Column(String(64), unique=True, nullable=True, default=generate_webhook_token)
     webhook_secret = Column(String(64), nullable=True, default=generate_webhook_secret)
     webhook_enabled = Column(Boolean, default=False)
+    webhook_auth_type = Column(String(20), default="payload")  # "payload" or "url"
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

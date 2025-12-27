@@ -78,6 +78,13 @@ MIGRATIONS = [
         "column": "webhook_secret",
         "sql": "ALTER TABLE workflows ADD COLUMN webhook_secret VARCHAR(64);",
     },
+    {
+        "id": "002_add_webhook_auth_type",
+        "description": "Add webhook_auth_type column to workflows table (payload or url)",
+        "table": "workflows",
+        "column": "webhook_auth_type",
+        "sql": "ALTER TABLE workflows ADD COLUMN webhook_auth_type VARCHAR(20) DEFAULT 'payload';",
+    },
 ]
 
 
