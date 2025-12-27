@@ -110,9 +110,23 @@ npm install
 
 | Node | Description |
 |------|-------------|
-| Schedule | Start workflow at specified time (once/daily/weekly) |
-| Price Alert | Trigger when price crosses threshold |
+| Schedule | Start workflow at specified time (once/daily/weekly/interval) |
+| Price Alert | Real-time WebSocket monitoring - triggers when price condition is met |
 | Webhook | External HTTP trigger with secret authentication |
+
+### Price Alert Conditions
+
+| Condition | Description |
+|-----------|-------------|
+| Greater Than | LTP > target price |
+| Less Than | LTP < target price |
+| Crossing | Price crosses the target (either direction) |
+| Crossing Up | Price crosses above target |
+| Crossing Down | Price crosses below target |
+| Entering Channel | Price enters a price range |
+| Exiting Channel | Price exits a price range |
+| Moving Up % | Price moved up by X% |
+| Moving Down % | Price moved down by X% |
 
 ### Actions - Orders
 
@@ -405,6 +419,48 @@ Access data in workflow using `{{webhook.stocks}}`, `{{webhook.scan_name}}`, etc
 - Two auth methods: payload-based or URL-based
 - Failed auth returns 401 Unauthorized
 - Rate limit: 30 requests/minute per endpoint
+
+## Price Alert Trigger
+
+OpenAlgo Flow supports real-time price monitoring using WebSocket streaming from OpenAlgo.
+
+### How It Works
+
+1. Add a **Price Alert** trigger node to your workflow
+2. Configure the symbol, exchange, and price condition
+3. **Activate** the workflow to start real-time monitoring
+4. When the price condition is met, the workflow triggers automatically
+
+### Features
+
+- **Real-time Monitoring**: Uses WebSocket for instant price updates (not polling)
+- **Multiple Conditions**: Support for various price conditions (crossing, channels, percentages)
+- **One-shot Trigger**: Workflow triggers once when condition is met, then deactivates
+- **Multiple Alerts**: Monitor multiple symbols across different workflows simultaneously
+
+### Example Use Cases
+
+1. **Breakout Alert**: Trigger when NIFTY crosses above 26000
+2. **Stop Loss**: Execute sell order when price drops below threshold
+3. **Range Trading**: Alert when price enters or exits a channel
+4. **Momentum**: Detect when price moves up/down by X%
+
+### Accessing Price Data
+
+When a price alert triggers, the following variables are available:
+
+| Variable | Description |
+|----------|-------------|
+| `{{webhook.trigger_type}}` | Always "price_alert" |
+| `{{webhook.trigger_price}}` | The price that triggered the alert |
+| `{{webhook.triggered_at}}` | Timestamp when alert triggered |
+
+### API Endpoint
+
+Check active price monitors:
+```
+GET /api/workflows/price-monitor/status
+```
 
 ## Tech Stack
 

@@ -19,6 +19,7 @@ from app.core.encryption import decrypt_safe
 from app.models.workflow import Workflow, WorkflowExecution
 from app.models.settings import AppSettings
 from app.api.websocket import broadcast_execution_update
+from app.services.price_monitor import get_price_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -2457,6 +2458,86 @@ def execute_workflow_sync(workflow_id: int):
         loop.close()
 
 
+async def _activate_price_alert(workflow: Workflow, trigger_node: dict, db: AsyncSession) -> dict:
+    """
+    Activate a price alert workflow with real-time WebSocket monitoring.
+
+    This sets up the PriceMonitor to watch for price conditions and
+    automatically trigger the workflow when conditions are met.
+    """
+    try:
+        # Get price alert configuration
+        node_data = trigger_node.get("data", {})
+        symbol = node_data.get("symbol", "")
+        exchange = node_data.get("exchange", "NSE")
+        condition = node_data.get("condition", "greater_than")
+        target_price = float(node_data.get("price", 0))
+        price_lower = node_data.get("priceLower")
+        price_upper = node_data.get("priceUpper")
+        percentage = node_data.get("percentage")
+
+        if not symbol:
+            return {"status": "error", "message": "Price alert requires a symbol"}
+
+        if target_price <= 0 and condition not in ["moving_up", "moving_down"]:
+            return {"status": "error", "message": "Price alert requires a valid target price"}
+
+        # Get OpenAlgo client for WebSocket
+        settings_result = await db.execute(select(AppSettings).limit(1))
+        settings = settings_result.scalar_one_or_none()
+
+        if not settings or not settings.openalgo_api_key:
+            return {"status": "error", "message": "OpenAlgo settings not configured"}
+
+        # Initialize price monitor with client
+        price_monitor = get_price_monitor()
+
+        if not price_monitor._client:
+            from app.core.encryption import decrypt_safe
+            api_key = decrypt_safe(settings.openalgo_api_key)
+            client = OpenAlgoClient(
+                api_key=api_key,
+                host=settings.openalgo_host or "http://127.0.0.1:5000",
+                ws_url=settings.openalgo_ws_url or "ws://127.0.0.1:8765"
+            )
+            price_monitor.set_client(client)
+
+        # Add price alert
+        success = price_monitor.add_alert(
+            workflow_id=workflow.id,
+            symbol=symbol,
+            exchange=exchange,
+            condition=condition,
+            target_price=target_price,
+            price_lower=float(price_lower) if price_lower else None,
+            price_upper=float(price_upper) if price_upper else None,
+            percentage=float(percentage) if percentage else None
+        )
+
+        if not success:
+            return {"status": "error", "message": "Failed to start price monitoring"}
+
+        # Mark workflow as active
+        workflow.is_active = True
+        await db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Price alert activated. Monitoring {symbol}@{exchange} for {condition} {target_price}",
+            "trigger_type": "price_alert",
+            "monitoring": {
+                "symbol": symbol,
+                "exchange": exchange,
+                "condition": condition,
+                "target_price": target_price
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to activate price alert: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 async def activate_workflow(workflow_id: int, db: AsyncSession) -> dict:
     """Activate a workflow and schedule it"""
     result = await db.execute(select(Workflow).where(Workflow.id == workflow_id))
@@ -2483,6 +2564,10 @@ async def activate_workflow(workflow_id: int, db: AsyncSession) -> dict:
             "message": "Webhook workflow activated. Trigger via webhook URL.",
             "trigger_type": "webhook"
         }
+
+    # For price alert triggers, start real-time WebSocket monitoring
+    if start_node.get("type") == "priceAlert":
+        return await _activate_price_alert(workflow, start_node, db)
 
     start_data = start_node.get("data", {})
     schedule_type = start_data.get("scheduleType", "daily")
@@ -2530,15 +2615,22 @@ async def activate_workflow(workflow_id: int, db: AsyncSession) -> dict:
 
 
 async def deactivate_workflow(workflow_id: int, db: AsyncSession) -> dict:
-    """Deactivate a workflow and remove from scheduler"""
+    """Deactivate a workflow and remove from scheduler/price monitor"""
     result = await db.execute(select(Workflow).where(Workflow.id == workflow_id))
     workflow = result.scalar_one_or_none()
 
     if not workflow:
         return {"status": "error", "message": "Workflow not found"}
 
+    # Remove from scheduler if scheduled
     if workflow.schedule_job_id:
         workflow_scheduler.remove_job(workflow.schedule_job_id)
+
+    # Remove from price monitor if it's a price alert workflow
+    price_monitor = get_price_monitor()
+    if price_monitor.get_alert(workflow_id):
+        price_monitor.remove_alert(workflow_id)
+        logger.info(f"Removed price alert for workflow {workflow_id}")
 
     workflow.is_active = False
     workflow.schedule_job_id = None

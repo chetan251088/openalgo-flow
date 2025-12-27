@@ -527,3 +527,23 @@ async def update_webhook_auth_type(
         "webhook_url": base_url,
         "webhook_url_with_secret": f"{base_url}?secret={workflow.webhook_secret}" if auth_type == "url" else None
     }
+
+
+# =============================================================================
+# PRICE MONITOR STATUS
+# =============================================================================
+
+@router.get("/price-monitor/status")
+@limiter.limit(READ_LIMIT)
+async def get_price_monitor_status(
+    request: Request,
+    _: bool = Depends(get_current_admin)
+):
+    """Get status of the real-time price monitor
+
+    Returns information about active price alerts being monitored via WebSocket.
+    """
+    from app.services.price_monitor import get_price_monitor
+
+    price_monitor = get_price_monitor()
+    return price_monitor.get_status()
